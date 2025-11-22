@@ -437,6 +437,27 @@ function showTourView() {
   // Example; replace with real coordinates + scene IDs from data.js:
   // addPlotMarker(LAT, LON, "scene-id-here");
 
+var firstMarkerLatLng = null;
+
+function addPlotMarker(lat, lon, targetSceneId) {
+  var marker = L.marker([lat, lon]).addTo(leafletMap)
+    .on('click', function() {
+      var targetScene = sceneById[targetSceneId];
+      if (targetScene) {
+        showTourView();
+        switchScene(targetScene);
+      } else {
+        console.warn('No scene found with id:', targetSceneId);
+      }
+    });
+
+  // Remember the first marker we add
+  if (!firstMarkerLatLng) {
+    firstMarkerLatLng = marker.getLatLng();
+  }
+}
+
+
 addPlotMarker(53.020256, 14.136465, "0-2main");
 
   // By default, show the map view first
