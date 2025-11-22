@@ -423,22 +423,31 @@
 
   var firstMarkerLatLng = null;
 
-  function addPlotMarker(lat, lon, targetSceneId) {
-    var marker = L.marker([lat, lon]).addTo(leafletMap)
-      .on('click', function() {
-        var targetScene = sceneById[targetSceneId];
-        if (targetScene) {
-          showTourView();
-          switchScene(targetScene);
-        } else {
-          console.warn('No scene found with id:', targetSceneId);
-        }
-      });
+function addPlotMarker(lat, lon, targetSceneId, label) {
+  var marker = L.marker([lat, lon]).addTo(leafletMap)
+    .on('click', function() {
+      var targetScene = sceneById[targetSceneId];
+      if (targetScene) {
+        showTourView();
+        switchScene(targetScene);
+      } else {
+        console.warn('No scene found with id:', targetSceneId);
+      }
+    });
 
-    if (!firstMarkerLatLng) {
-      firstMarkerLatLng = marker.getLatLng();
-    }
+  // Show the plot number as a permanent label above the marker
+  if (label) {
+    marker.bindTooltip(label, {
+      permanent: true,
+      direction: 'top',
+      className: 'plot-label'
+    });
   }
+
+  if (!firstMarkerLatLng) {
+    firstMarkerLatLng = marker.getLatLng();
+  }
+}
 
   // ================
   // ADD PLOT MARKERS
@@ -449,7 +458,7 @@
   //  - Your current main scene id (from data.js) is "0-2main".
   //  - Change the coordinates to your real lat/lon.
 
-  addPlotMarker(53.020256, 14.136465, "0-2main"); // <-- main plot marker only
+  addPlotMarker(53.020256, 14.136465, "0-2main", "Plot 2"); // <-- main plot marker only
 
   // When you add more plots later, only use their *_main ids here, e.g.:
   // addPlotMarker(53.0400, 14.2010, "plot02_main");
