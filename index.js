@@ -1,7 +1,6 @@
 /*
  * Standard Marzipano viewer script + fullscreen map integration
  */
-
 'use strict';
 
 (function() {
@@ -59,7 +58,7 @@
   // Initialize viewer.
   var viewer = new Marzipano.Viewer(panoElement, viewerOpts);
 
-  // Create scenes.
+  // Create scenes from APP_DATA.
   var scenes = data.scenes.map(function(sceneData) {
     var urlPrefix = "tiles";
     var source = Marzipano.ImageUrlSource.fromString(
@@ -111,7 +110,7 @@
   var autorotate = Marzipano.autorotate({
     yawSpeed: 0.03,
     targetPitch: 0,
-    targetFov: Math.PI/2
+    targetFov: Math.PI / 2
   });
   if (data.settings.autorotateEnabled) {
     autorotateToggleElement.classList.add('enabled');
@@ -148,7 +147,7 @@
   // Set handler for scene switch (scene list clicks).
   scenes.forEach(function(scene) {
     var el = document.querySelector('#sceneList .scene[data-id="' + scene.data.id + '"]');
-    if (!el) return; // in case your HTML scene list is empty
+    if (!el) return;
     el.addEventListener('click', function() {
       switchScene(scene);
       if (document.body.classList.contains('mobile')) {
@@ -189,6 +188,10 @@
     startAutorotate();
     updateSceneName(scene);
     updateSceneList(scene);
+    // Make sure viewer resizes correctly when switching scenes.
+    setTimeout(function() {
+      viewer.updateSize();
+    }, 50);
   }
 
   function updateSceneName(scene) {
@@ -362,7 +365,7 @@
     return null;
   }
 
-  // Show a default scene in the viewer (it will be hidden behind map until user clicks a marker).
+  // Display an initial scene in the viewer (behind the map until user clicks).
   if (scenes.length > 0) {
     switchScene(scenes[0]);
   }
@@ -371,34 +374,33 @@
   // MAP + VIEW SWITCH LOGIC
   // ======================
 
-  // Map <-> Tour containers and button
   var mapView = document.getElementById('map-view');
   var tourView = document.getElementById('tour-view');
   var backToMapButton = document.getElementById('backToMapButton');
 
-function showMapView() {
-  if (mapView) mapView.style.display = 'block';
-  if (tourView) tourView.style.display = 'none';
+  function showMapView() {
+    if (mapView) mapView.style.display = 'block';
+    if (tourView) tourView.style.display = 'none';
 
-  // Tell Leaflet to fix its size after being hidden
-  if (leafletMap) {
-    setTimeout(function() {
-      leafletMap.invalidateSize();
-    }, 100);
+    // Fix Leaflet after visibility change
+    if (leafletMap) {
+      setTimeout(function() {
+        leafletMap.invalidateSize();
+      }, 50);
+    }
   }
-}
 
-function showTourView() {
-  if (mapView) mapView.style.display = 'none';
-  if (tourView) tourView.style.display = 'block';
+  function showTourView() {
+    if (mapView) mapView.style.display = 'none';
+    if (tourView) tourView.style.display = 'block';
 
-  // Tell Marzipano to recalculate the pano size
-  if (viewer) {
-    setTimeout(function() {
-      viewer.updateSize();
-    }, 100);
+    // Fix Marzipano after visibility change
+    if (viewer) {
+      setTimeout(function() {
+        viewer.updateSize();
+      }, 50);
+    }
   }
-}
 
   if (backToMapButton) {
     backToMapButton.addEventListener('click', function() {
@@ -406,22 +408,23 @@ function showTourView() {
     });
   }
 
-  // Dictionary: sceneId -> scene object
+  // Build dictionary: sceneId -> scene object
   var sceneById = {};
   scenes.forEach(function(scene) {
     sceneById[scene.data.id] = scene;
   });
 
-  // Create Leaflet map
-  var leafletMap = L.map('map').setView([53.038, 14.200], 14); // change center if needed
+  // Create Leaflet map (full screen map in #map)
+  var leafletMap = L.map('map').setView([53.038, 14.200], 14); // temporary center
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19
   }).addTo(leafletMap);
 
-  // Helper to add one clickable plot marker
+  var firstMarkerLatLng = null;
+
   function addPlotMarker(lat, lon, targetSceneId) {
-    L.marker([lat, lon]).addTo(leafletMap)
+    var marker = L.marker([lat, lon]).addTo(leafletMap)
       .on('click', function() {
         var targetScene = sceneById[targetSceneId];
         if (targetScene) {
@@ -431,47 +434,34 @@ function showTourView() {
           console.warn('No scene found with id:', targetSceneId);
         }
       });
+
+    if (!firstMarkerLatLng) {
+      firstMarkerLatLng = marker.getLatLng();
+    }
   }
 
-  // ADD YOUR PLOT MARKERS HERE:
-  // Example; replace with real coordinates + scene IDs from data.js:
-  // addPlotMarker(LAT, LON, "scene-id-here");
+  // ================
+  // ADD PLOT MARKERS
+  // ================
+  //
+  // IMPORTANT:
+  //  - Use ONLY "main" scene IDs here (not buffer or top views).
+  //  - Your current main scene id (from data.js) is "0-2main".
+  //  - Change the coordinates to your real lat/lon.
 
-var firstMarkerLatLng = null;
+  addPlotMarker(53.0385, 14.1992, "0-2main"); // <-- main plot marker only
 
-function addPlotMarker(lat, lon, targetSceneId) {
-  var marker = L.marker([lat, lon]).addTo(leafletMap)
-    .on('click', function() {
-      var targetScene = sceneById[targetSceneId];
-      if (targetScene) {
-        showTourView();
-        switchScene(targetScene);
-      } else {
-        console.warn('No scene found with id:', targetSceneId);
-      }
-    });
+  // When you add more plots later, only use their *_main ids here, e.g.:
+  // addPlotMarker(53.0400, 14.2010, "plot02_main");
+  // addPlotMarker(53.0410, 14.2025, "plot03_main");
+  // etc.
 
-  // Remember the first marker we add
-  if (!firstMarkerLatLng) {
-    firstMarkerLatLng = marker.getLatLng();
+  // Center map on first marker
+  if (firstMarkerLatLng) {
+    leafletMap.setView(firstMarkerLatLng, 17);
   }
-}
 
-
-addPlotMarker(53.020256, 14.136465, "0-2main");
-
-// ADD YOUR PLOT MARKERS HERE:
-
-addPlotMarker(53.0385, 14.1992, "0-2main");
-// later: add more like
-// addPlotMarker(lat2, lon2, "plot02_main");
-// ...
-
-// Center the map on the first marker added
-if (firstMarkerLatLng) {
-  leafletMap.setView(firstMarkerLatLng, 17);
-}
-  // By default, show the map view first
+  // Start with map view visible
   showMapView();
 
 })();
