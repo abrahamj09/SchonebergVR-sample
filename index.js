@@ -390,3 +390,57 @@
   switchScene(scenes[0]);
 
 })();
+
+// ======================
+// MAP + PLOT MARKERS
+// ======================
+
+// Build a helper dictionary: sceneId -> scene object
+// If you already have a "sceneById" in your file, you can skip this and reuse it.
+var sceneById = {};
+scenes.forEach(function(scene) {
+  sceneById[scene.data.id] = scene;
+});
+
+// Create the Leaflet map inside the "map-box" div
+// [53.038, 14.200] is just an example center (you will replace this later if needed)
+var map = L.map('map-box').setView([53.038, 14.200], 14);
+
+// Add OpenStreetMap tiles as the background layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+// Helper function to add one plot marker
+function addPlotMarker(lat, lon, targetSceneId) {
+  L.marker([lat, lon]).addTo(map)
+    .on('click', function() {
+      var scene = sceneById[targetSceneId];
+      if (scene) {
+        switchScene(scene);
+      } else {
+        console.warn("No scene found with id:", targetSceneId);
+      }
+    });
+}
+
+// ======================
+// ADD YOUR PLOTS HERE
+// ======================
+
+// Example markers: replace with your real coordinates and scene IDs.
+// Right now, your scene IDs (from index.html / data.js) look like:
+// "0-2main", "1-2buffer1", "2-2main_top"
+
+// Plot 1 (example)
+addPlotMarker(53.0385, 14.1992, "0-2main");
+
+// Plot 2 (example)
+addPlotMarker(53.0390, 14.1980, "1-2buffer1");
+
+// Plot 3 (example)
+addPlotMarker(53.0378, 14.2005, "2-2main_top");
+
+// For plot 4–30, you will simply copy this line and change lat, lon, and scene ID:
+// addPlotMarker(LAT_HERE, LON_HERE, "scene-id-here");
+
