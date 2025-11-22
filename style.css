@@ -881,73 +881,26 @@ body.view-control-buttons .viewControlButton {
 }
 
 
+/* --- OVERRIDE: keep nav buttons visible and on top --- */
 
-/* Make sure the navigation buttons are visible above the pano */
-.viewControlButton {
-  position: absolute;
-  bottom: 20px;
-  z-index: 5000; /* below map-button (9999) but above pano */
-}
-
-/* Center them at the bottom in a row */
-.viewControlButton-3, /* left */
-.viewControlButton-5, /* zoom in */
-.viewControlButton-1, /* up */
-.viewControlButton-2, /* down */
-.viewControlButton-6, /* zoom out */
-.viewControlButton-4  /* right */ {
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Fine-tune each button horizontally */
-.viewControlButton-3 { transform: translate(-90px, 0); }  /* left */
-.viewControlButton-1 { transform: translate(-45px, -40px); } /* up */
-.viewControlButton-2 { transform: translate(-45px, 20px); }  /* down */
-.viewControlButton-4 { transform: translate(0px, 0); }        /* right */
-.viewControlButton-5 { transform: translate(-140px, 0); }     /* zoom in */
-.viewControlButton-6 { transform: translate(50px, 0); }       /* zoom out */
-
-/* Make sure the icons themselves render nicely */
-.viewControlButton .icon {
-  width: 32px;
-  height: 32px;
-  display: block;
-}
-
-
-
-
-/* FORCE ENABLE NAV BUTTONS */
-.viewControlButton {
+/* Always show nav buttons when view-control-buttons is active */
+body.view-control-buttons .viewControlButton {
   display: block !important;
-  position: absolute !important;
-  z-index: 9999 !important;
-  width: 40px;
-  height: 40px;
-  background: rgba(103,115,131,0.8);
-  border-radius: 6px;
+  z-index: 9999;
 }
 
-/* REMOVE the mobile rule that hides buttons */
+/* On small screens, DO NOT hide them */
 @media (max-width: 600px) {
-  .viewControlButton {
+  body.view-control-buttons .viewControlButton {
     display: block !important;
   }
 }
 
-/* BUTTON POSITIONING — cluster at bottom center */
-#viewUp     { bottom: 80px; left: calc(50% - 20px); }
-#viewDown   { bottom: 20px; left: calc(50% - 20px); }
-#viewLeft   { bottom: 50px; left: calc(50% - 70px); }
-#viewRight  { bottom: 50px; left: calc(50% + 30px); }
-#viewIn     { bottom: 50px; left: calc(50% - 130px); }
-#viewOut    { bottom: 50px; left: calc(50% + 90px); }
-
+/* Make sure icons inside buttons are the right size */
 .viewControlButton .icon {
-  width: 32px;
-  height: 32px;
-  top: 4px;
-  right: 4px;
+  width: 30px;
+  height: 30px;
   position: absolute;
+  top: 5px;
+  right: 5px;
 }
