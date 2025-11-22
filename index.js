@@ -376,15 +376,29 @@
   var tourView = document.getElementById('tour-view');
   var backToMapButton = document.getElementById('backToMapButton');
 
-  function showMapView() {
-    if (mapView) mapView.style.display = 'block';
-    if (tourView) tourView.style.display = 'none';
-  }
+function showMapView() {
+  if (mapView) mapView.style.display = 'block';
+  if (tourView) tourView.style.display = 'none';
 
-  function showTourView() {
-    if (mapView) mapView.style.display = 'none';
-    if (tourView) tourView.style.display = 'block';
+  // Tell Leaflet to fix its size after being hidden
+  if (leafletMap) {
+    setTimeout(function() {
+      leafletMap.invalidateSize();
+    }, 100);
   }
+}
+
+function showTourView() {
+  if (mapView) mapView.style.display = 'none';
+  if (tourView) tourView.style.display = 'block';
+
+  // Tell Marzipano to recalculate the pano size
+  if (viewer) {
+    setTimeout(function() {
+      viewer.updateSize();
+    }, 100);
+  }
+}
 
   if (backToMapButton) {
     backToMapButton.addEventListener('click', function() {
