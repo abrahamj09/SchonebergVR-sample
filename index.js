@@ -460,6 +460,17 @@ function addPlotMarker(lat, lon, targetSceneId) {
 
 addPlotMarker(53.020256, 14.136465, "0-2main");
 
+// ADD YOUR PLOT MARKERS HERE:
+
+addPlotMarker(53.0385, 14.1992, "0-2main");
+// later: add more like
+// addPlotMarker(lat2, lon2, "plot02_main");
+// ...
+
+// Center the map on the first marker added
+if (firstMarkerLatLng) {
+  leafletMap.setView(firstMarkerLatLng, 17);
+}
   // By default, show the map view first
   showMapView();
 
