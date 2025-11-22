@@ -1,18 +1,7 @@
 /*
- * Copyright 2016 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Standard Marzipano viewer script + fullscreen map integration
  */
+
 'use strict';
 
 (function() {
@@ -71,15 +60,20 @@
   var viewer = new Marzipano.Viewer(panoElement, viewerOpts);
 
   // Create scenes.
-  var scenes = data.scenes.map(function(data) {
+  var scenes = data.scenes.map(function(sceneData) {
     var urlPrefix = "tiles";
     var source = Marzipano.ImageUrlSource.fromString(
-      urlPrefix + "/" + data.id + "/{z}/{f}/{y}/{x}.jpg",
-      { cubeMapPreviewUrl: urlPrefix + "/" + data.id + "/preview.jpg" });
-    var geometry = new Marzipano.CubeGeometry(data.levels);
+      urlPrefix + "/" + sceneData.id + "/{z}/{f}/{y}/{x}.jpg",
+      { cubeMapPreviewUrl: urlPrefix + "/" + sceneData.id + "/preview.jpg" }
+    );
+    var geometry = new Marzipano.CubeGeometry(sceneData.levels);
 
-    var limiter = Marzipano.RectilinearView.limit.traditional(data.faceSize, 100*Math.PI/180, 120*Math.PI/180);
-    var view = new Marzipano.RectilinearView(data.initialViewParameters, limiter);
+    var limiter = Marzipano.RectilinearView.limit.traditional(
+      sceneData.faceSize,
+      100 * Math.PI / 180,
+      120 * Math.PI / 180
+    );
+    var view = new Marzipano.RectilinearView(sceneData.initialViewParameters, limiter);
 
     var scene = viewer.createScene({
       source: source,
@@ -89,19 +83,25 @@
     });
 
     // Create link hotspots.
-    data.linkHotspots.forEach(function(hotspot) {
+    sceneData.linkHotspots.forEach(function(hotspot) {
       var element = createLinkHotspotElement(hotspot);
-      scene.hotspotContainer().createHotspot(element, { yaw: hotspot.yaw, pitch: hotspot.pitch });
+      scene.hotspotContainer().createHotspot(element, {
+        yaw: hotspot.yaw,
+        pitch: hotspot.pitch
+      });
     });
 
     // Create info hotspots.
-    data.infoHotspots.forEach(function(hotspot) {
+    sceneData.infoHotspots.forEach(function(hotspot) {
       var element = createInfoHotspotElement(hotspot);
-      scene.hotspotContainer().createHotspot(element, { yaw: hotspot.yaw, pitch: hotspot.pitch });
+      scene.hotspotContainer().createHotspot(element, {
+        yaw: hotspot.yaw,
+        pitch: hotspot.pitch
+      });
     });
 
     return {
-      data: data,
+      data: sceneData,
       scene: scene,
       view: view
     };
@@ -145,12 +145,12 @@
     showSceneList();
   }
 
-  // Set handler for scene switch.
+  // Set handler for scene switch (scene list clicks).
   scenes.forEach(function(scene) {
     var el = document.querySelector('#sceneList .scene[data-id="' + scene.data.id + '"]');
+    if (!el) return; // in case your HTML scene list is empty
     el.addEventListener('click', function() {
       switchScene(scene);
-      // On mobile, hide scene list after selecting a scene.
       if (document.body.classList.contains('mobile')) {
         hideSceneList();
       }
@@ -245,34 +245,26 @@
   }
 
   function createLinkHotspotElement(hotspot) {
-
-    // Create wrapper element to hold icon and tooltip.
     var wrapper = document.createElement('div');
     wrapper.classList.add('hotspot');
     wrapper.classList.add('link-hotspot');
 
-    // Create image element.
     var icon = document.createElement('img');
     icon.src = 'img/link.png';
     icon.classList.add('link-hotspot-icon');
 
-    // Set rotation transform.
     var transformProperties = [ '-ms-transform', '-webkit-transform', 'transform' ];
     for (var i = 0; i < transformProperties.length; i++) {
       var property = transformProperties[i];
       icon.style[property] = 'rotate(' + hotspot.rotation + 'rad)';
     }
 
-    // Add click event handler.
     wrapper.addEventListener('click', function() {
       switchScene(findSceneById(hotspot.target));
     });
 
-    // Prevent touch and scroll events from reaching the parent element.
-    // This prevents the view control logic from interfering with the hotspot.
     stopTouchAndScrollEventPropagation(wrapper);
 
-    // Create tooltip element.
     var tooltip = document.createElement('div');
     tooltip.classList.add('hotspot-tooltip');
     tooltip.classList.add('link-hotspot-tooltip');
@@ -285,17 +277,13 @@
   }
 
   function createInfoHotspotElement(hotspot) {
-
-    // Create wrapper element to hold icon and tooltip.
     var wrapper = document.createElement('div');
     wrapper.classList.add('hotspot');
     wrapper.classList.add('info-hotspot');
 
-    // Create hotspot/tooltip header.
     var header = document.createElement('div');
     header.classList.add('info-hotspot-header');
 
-    // Create image element.
     var iconWrapper = document.createElement('div');
     iconWrapper.classList.add('info-hotspot-icon-wrapper');
     var icon = document.createElement('img');
@@ -303,7 +291,6 @@
     icon.classList.add('info-hotspot-icon');
     iconWrapper.appendChild(icon);
 
-    // Create title element.
     var titleWrapper = document.createElement('div');
     titleWrapper.classList.add('info-hotspot-title-wrapper');
     var title = document.createElement('div');
@@ -311,7 +298,6 @@
     title.innerHTML = hotspot.title;
     titleWrapper.appendChild(title);
 
-    // Create close element.
     var closeWrapper = document.createElement('div');
     closeWrapper.classList.add('info-hotspot-close-wrapper');
     var closeIcon = document.createElement('img');
@@ -319,21 +305,17 @@
     closeIcon.classList.add('info-hotspot-close-icon');
     closeWrapper.appendChild(closeIcon);
 
-    // Construct header element.
     header.appendChild(iconWrapper);
     header.appendChild(titleWrapper);
     header.appendChild(closeWrapper);
 
-    // Create text element.
     var text = document.createElement('div');
     text.classList.add('info-hotspot-text');
     text.innerHTML = hotspot.text;
 
-    // Place header and text into wrapper element.
     wrapper.appendChild(header);
     wrapper.appendChild(text);
 
-    // Create a modal for the hotspot content to appear on mobile mode.
     var modal = document.createElement('div');
     modal.innerHTML = wrapper.innerHTML;
     modal.classList.add('info-hotspot-modal');
@@ -344,21 +326,15 @@
       modal.classList.toggle('visible');
     };
 
-    // Show content when hotspot is clicked.
     wrapper.querySelector('.info-hotspot-header').addEventListener('click', toggle);
-
-    // Hide content when close icon is clicked.
     modal.querySelector('.info-hotspot-close-wrapper').addEventListener('click', toggle);
 
-    // Prevent touch and scroll events from reaching the parent element.
-    // This prevents the view control logic from interfering with the hotspot.
     stopTouchAndScrollEventPropagation(wrapper);
 
     return wrapper;
   }
 
-  // Prevent touch and scroll events from reaching the parent element.
-  function stopTouchAndScrollEventPropagation(element, eventList) {
+  function stopTouchAndScrollEventPropagation(element) {
     var eventList = [ 'touchstart', 'touchmove', 'touchend', 'touchcancel',
                       'wheel', 'mousewheel' ];
     for (var i = 0; i < eventList.length; i++) {
@@ -386,84 +362,70 @@
     return null;
   }
 
-  // Display the initial scene.
-  switchScene(scenes[0]);
+  // Show a default scene in the viewer (it will be hidden behind map until user clicks a marker).
+  if (scenes.length > 0) {
+    switchScene(scenes[0]);
+  }
+
+  // ======================
+  // MAP + VIEW SWITCH LOGIC
+  // ======================
+
+  // Map <-> Tour containers and button
+  var mapView = document.getElementById('map-view');
+  var tourView = document.getElementById('tour-view');
+  var backToMapButton = document.getElementById('backToMapButton');
+
+  function showMapView() {
+    if (mapView) mapView.style.display = 'block';
+    if (tourView) tourView.style.display = 'none';
+  }
+
+  function showTourView() {
+    if (mapView) mapView.style.display = 'none';
+    if (tourView) tourView.style.display = 'block';
+  }
+
+  if (backToMapButton) {
+    backToMapButton.addEventListener('click', function() {
+      showMapView();
+    });
+  }
+
+  // Dictionary: sceneId -> scene object
+  var sceneById = {};
+  scenes.forEach(function(scene) {
+    sceneById[scene.data.id] = scene;
+  });
+
+  // Create Leaflet map
+  var leafletMap = L.map('map').setView([53.038, 14.200], 14); // change center if needed
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  // Helper to add one clickable plot marker
+  function addPlotMarker(lat, lon, targetSceneId) {
+    L.marker([lat, lon]).addTo(leafletMap)
+      .on('click', function() {
+        var targetScene = sceneById[targetSceneId];
+        if (targetScene) {
+          showTourView();
+          switchScene(targetScene);
+        } else {
+          console.warn('No scene found with id:', targetSceneId);
+        }
+      });
+  }
+
+  // ADD YOUR PLOT MARKERS HERE:
+  // Example; replace with real coordinates + scene IDs from data.js:
+  // addPlotMarker(LAT, LON, "scene-id-here");
+
+addPlotMarker(53.020256, 14.136465, "0-2main");
+
+  // By default, show the map view first
+  showMapView();
 
 })();
-
-
-
-
-
-
-
-// ======================
-// MAP + VIEW SWITCH LOGIC
-// ======================
-
-// 1. Build a helper dictionary: sceneId -> scene object
-// Assumes `scenes` is already defined in your existing index.js
-var sceneById = {};
-scenes.forEach(function(scene) {
-  sceneById[scene.data.id] = scene;
-});
-
-// 2. Get references to the two main views and the back button
-var mapView = document.getElementById('map-view');
-var tourView = document.getElementById('tour-view');
-var backToMapButton = document.getElementById('backToMapButton');
-
-// 3. Helper functions to show/hide map and tour
-function showMapView() {
-  mapView.style.display = 'block';
-  tourView.style.display = 'none';
-}
-
-function showTourView() {
-  mapView.style.display = 'none';
-  tourView.style.display = 'block';
-}
-
-// Back-to-map button inside the tour
-backToMapButton.addEventListener('click', function() {
-  showMapView();
-});
-
-// 4. Create the Leaflet map inside #map
-// Center and zoom are just example values, adjust if needed.
-var leafletMap = L.map('map').setView([53.038, 14.200], 14);
-
-// Add OpenStreetMap tiles as background
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
-}).addTo(leafletMap);
-
-// 5. Helper to add one clickable plot marker
-function addPlotMarker(lat, lon, targetSceneId) {
-  L.marker([lat, lon]).addTo(leafletMap)
-    .on('click', function() {
-      var scene = sceneById[targetSceneId];
-      if (scene) {
-        showTourView();     // switch to the 360° view
-        switchScene(scene); // jump to that plot's panorama
-      } else {
-        console.warn("No scene found with id:", targetSceneId);
-      }
-    });
-}
-
-// 6. ADD YOUR PLOT MARKERS HERE
-// Use the EXACT scene IDs from data.js, and the correct lat/lon for each plot.
-
-// Example markers (replace with your real coordinates and IDs):
-// Plot 1
-addPlotMarker(53.0385, 14.1992, "plot01_1_main");
-
-// Plot 2
-addPlotMarker(53.0390, 14.1980, "plot02_1_main");
-
-// Plot 3
-addPlotMarker(53.0378, 14.2005, "plot03_1_main");
-
-// Continue like this for all 30 plots:
-// addPlotMarker(LAT_HERE, LON_HERE, "scene-id-here");
