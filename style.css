@@ -791,7 +791,7 @@ body.single-scene #sceneList, body.single-scene #sceneListToggle {
 }
 ////////////////////////////////
 body.view-control-buttons .viewControlButton {
-  display: round;
+  display: block;
 }
 
 /* Hide controls when width is too small */
