@@ -914,3 +914,40 @@ body.view-control-buttons .viewControlButton {
   height: 32px;
   display: block;
 }
+
+
+
+
+/* FORCE ENABLE NAV BUTTONS */
+.viewControlButton {
+  display: block !important;
+  position: absolute !important;
+  z-index: 9999 !important;
+  width: 40px;
+  height: 40px;
+  background: rgba(103,115,131,0.8);
+  border-radius: 6px;
+}
+
+/* REMOVE the mobile rule that hides buttons */
+@media (max-width: 600px) {
+  .viewControlButton {
+    display: block !important;
+  }
+}
+
+/* BUTTON POSITIONING — cluster at bottom center */
+#viewUp     { bottom: 80px; left: calc(50% - 20px); }
+#viewDown   { bottom: 20px; left: calc(50% - 20px); }
+#viewLeft   { bottom: 50px; left: calc(50% - 70px); }
+#viewRight  { bottom: 50px; left: calc(50% + 30px); }
+#viewIn     { bottom: 50px; left: calc(50% - 130px); }
+#viewOut    { bottom: 50px; left: calc(50% + 90px); }
+
+.viewControlButton .icon {
+  width: 32px;
+  height: 32px;
+  top: 4px;
+  right: 4px;
+  position: absolute;
+}
