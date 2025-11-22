@@ -879,3 +879,38 @@ body.view-control-buttons .viewControlButton {
   height: 40px;
   display: block;
 }
+
+
+
+/* Make sure the navigation buttons are visible above the pano */
+.viewControlButton {
+  position: absolute;
+  bottom: 20px;
+  z-index: 5000; /* below map-button (9999) but above pano */
+}
+
+/* Center them at the bottom in a row */
+.viewControlButton-3, /* left */
+.viewControlButton-5, /* zoom in */
+.viewControlButton-1, /* up */
+.viewControlButton-2, /* down */
+.viewControlButton-6, /* zoom out */
+.viewControlButton-4  /* right */ {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Fine-tune each button horizontally */
+.viewControlButton-3 { transform: translate(-90px, 0); }  /* left */
+.viewControlButton-1 { transform: translate(-45px, -40px); } /* up */
+.viewControlButton-2 { transform: translate(-45px, 20px); }  /* down */
+.viewControlButton-4 { transform: translate(0px, 0); }        /* right */
+.viewControlButton-5 { transform: translate(-140px, 0); }     /* zoom in */
+.viewControlButton-6 { transform: translate(50px, 0); }       /* zoom out */
+
+/* Make sure the icons themselves render nicely */
+.viewControlButton .icon {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
