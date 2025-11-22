@@ -391,56 +391,79 @@
 
 })();
 
+
+
+
+
+
+
 // ======================
-// MAP + PLOT MARKERS
+// MAP + VIEW SWITCH LOGIC
 // ======================
 
-// Build a helper dictionary: sceneId -> scene object
-// If you already have a "sceneById" in your file, you can skip this and reuse it.
+// 1. Build a helper dictionary: sceneId -> scene object
+// Assumes `scenes` is already defined in your existing index.js
 var sceneById = {};
 scenes.forEach(function(scene) {
   sceneById[scene.data.id] = scene;
 });
 
-// Create the Leaflet map inside the "map-box" div
-// [53.038, 14.200] is just an example center (you will replace this later if needed)
-var map = L.map('map-box').setView([53.038, 14.200], 14);
+// 2. Get references to the two main views and the back button
+var mapView = document.getElementById('map-view');
+var tourView = document.getElementById('tour-view');
+var backToMapButton = document.getElementById('backToMapButton');
 
-// Add OpenStreetMap tiles as the background layer
+// 3. Helper functions to show/hide map and tour
+function showMapView() {
+  mapView.style.display = 'block';
+  tourView.style.display = 'none';
+}
+
+function showTourView() {
+  mapView.style.display = 'none';
+  tourView.style.display = 'block';
+}
+
+// Back-to-map button inside the tour
+backToMapButton.addEventListener('click', function() {
+  showMapView();
+});
+
+// 4. Create the Leaflet map inside #map
+// Center and zoom are just example values, adjust if needed.
+var leafletMap = L.map('map').setView([53.038, 14.200], 14);
+
+// Add OpenStreetMap tiles as background
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
-}).addTo(map);
+}).addTo(leafletMap);
 
-// Helper function to add one plot marker
+// 5. Helper to add one clickable plot marker
 function addPlotMarker(lat, lon, targetSceneId) {
-  L.marker([lat, lon]).addTo(map)
+  L.marker([lat, lon]).addTo(leafletMap)
     .on('click', function() {
       var scene = sceneById[targetSceneId];
       if (scene) {
-        switchScene(scene);
+        showTourView();     // switch to the 360° view
+        switchScene(scene); // jump to that plot's panorama
       } else {
         console.warn("No scene found with id:", targetSceneId);
       }
     });
 }
 
-// ======================
-// ADD YOUR PLOTS HERE
-// ======================
+// 6. ADD YOUR PLOT MARKERS HERE
+// Use the EXACT scene IDs from data.js, and the correct lat/lon for each plot.
 
-// Example markers: replace with your real coordinates and scene IDs.
-// Right now, your scene IDs (from index.html / data.js) look like:
-// "0-2main", "1-2buffer1", "2-2main_top"
+// Example markers (replace with your real coordinates and IDs):
+// Plot 1
+addPlotMarker(53.0385, 14.1992, "plot01_1_main");
 
-// Plot 1 (example)
-addPlotMarker(53.0385, 14.1992, "0-2main");
+// Plot 2
+addPlotMarker(53.0390, 14.1980, "plot02_1_main");
 
-// Plot 2 (example)
-addPlotMarker(53.0390, 14.1980, "1-2buffer1");
+// Plot 3
+addPlotMarker(53.0378, 14.2005, "plot03_1_main");
 
-// Plot 3 (example)
-addPlotMarker(53.0378, 14.2005, "2-2main_top");
-
-// For plot 4–30, you will simply copy this line and change lat, lon, and scene ID:
+// Continue like this for all 30 plots:
 // addPlotMarker(LAT_HERE, LON_HERE, "scene-id-here");
-
