@@ -449,7 +449,7 @@
   //  - Your current main scene id (from data.js) is "0-2main".
   //  - Change the coordinates to your real lat/lon.
 
-  addPlotMarker(53.0385, 14.1992, "0-2main"); // <-- main plot marker only
+  addPlotMarker(53.020256, 14.136465, "0-2main"); // <-- main plot marker only
 
   // When you add more plots later, only use their *_main ids here, e.g.:
   // addPlotMarker(53.0400, 14.2010, "plot02_main");
